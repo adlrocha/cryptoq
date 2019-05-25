@@ -69,5 +69,15 @@ def generateQK(num_bits, withHist=False, withError=False, ):
         plot.show()
     
     memory = result.get_memory()
-    num_bits = int(num_bits/4)
-    return memory[len(memory)-num_bits: len(memory)]
+    num_bits = int(num_bits/2)
+    memory = memory[len(memory)-num_bits: len(memory)]
+
+    res = {'A': '', 'B': ''}
+    for i in range(len(memory)-1):
+        res["A"] = res["A"] + memory[i][1]
+        res["B"] = res["B"] + memory[i][0]
+        res["A"] = res["A"] + memory[i][3]
+        res["B"] = res["B"] + memory[i][2]
+
+    return res
+
