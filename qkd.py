@@ -11,6 +11,7 @@ from qiskit.tools.visualization import plot_histogram
 
 import numpy as np
 import matplotlib.pyplot as plot
+import string
 
 from qiskit import IBMQ
 IBMQ.load_accounts()
@@ -45,7 +46,7 @@ def generateQK(num_bits, theta1=0, theta2=0, securityThresh=1000, simulation=Tru
     else:
         # Execute the circuit
         print("Running on real quantum computer...")
-        job = execute(cx_circ, backend = IBMQ.get_backend('ibmqx4'), shots=256*num_bits, memory=True)
+        job = execute(cx_circ, backend = IBMQ.get_backend('ibmqx2'), shots=256*num_bits, memory=True)
         result = job.result()
 
     # Print circuit.
@@ -127,10 +128,57 @@ def parityCircuit(theta1=0, theta2=0):
     return total_cx
 
 
-# def quantumConsensus(nodes=3):
-#     for i in xrange(nodes):
-#         job = execute(cx_circ, backend = Aer.get_backend('qasm_simulator'), shots=256*num_bits, memory=True)
-#         result = job.result()
-#         parityCircuit()
+def quantumConsensus(nodes=3):
 
-# print(generateQK(127, 0.5, 0.5, 100, True))
+    # Placeholder for the nodes results
+    res = dict(zip(string.ascii_uppercase, range(1, nodes+1)))
+    toSend = dict(zip(string.ascii_uppercase, range(1, nodes+1)))
+
+    
+
+    # While two nodes with the same value
+    while sum(res.values()) != 1:
+        # Placeholder for all measurements
+        pkts = ''
+        for i in range(nodes):
+            cx_circ = parityCircuit()
+            job = execute(cx_circ, backend = Aer.get_backend('qasm_simulator'), shots=1, memory=True)
+            result = job.result()
+            memory = result.get_memory()
+            res[list(res.keys())[i]] = int(memory[0][1])
+
+            #Adding measurements
+            pkts += memory[0][1]
+            pkts += memory[0][1]
+            print(res)
+    
+    print(res)
+    tmp = res.copy()
+    for value in tmp:
+        if res[value] == 1:
+            res['winner'] = value 
+
+    # Corner case
+    print(pkts)
+    toSend[list(toSend.keys())[0]] = pkts[0] + pkts[len(pkts)-1]
+    for i in range(1, nodes):
+        toSend[list(toSend.keys())[i]] = pkts[i+1] + pkts[i] 
+
+    return res, toSend
+
+def network3nodes():
+    res = quantumConsensus(nodes=3)
+    toSend = res[1]
+
+    # Cheat check
+    if toSend['A'][1] == toSend['C'][0]:
+        print('As validation correct')
+    if toSend['B'][1] == toSend['A'][0]:
+        print('Bs validation correct')
+    if toSend['C'][1] == toSend['B'][0]:
+        print('Cs validation correct')
+
+
+# print(generateQK(8, 1, 0.5, 100, False))
+# print(quantumConsensus())
+print(network3nodes())
