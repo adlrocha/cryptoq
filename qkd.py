@@ -24,6 +24,22 @@ x[1][0] = math.sin(theta)
 x[0][1] = -math.sin(theta)
 x[1][1] = math.cos(theta)
 
+def cheatingMatrices():
+    c1 = np.identity(2)
+    f = 1/math.sqrt(2)
+
+    c1[0][0] = f
+    c1[1][0] = -f
+    c1[0][1] = f
+    c1[1][1] = f
+
+    c2 = np.identity(2)
+    c2[0][0] = f
+    c2[1][0] = f
+    c2[0][1] = f
+    c2[1][1] = -f
+    return c1, c2
+
 def rotationMatrix(theta):
     x = np.identity(2)
     x[0][0] = math.cos(theta)
@@ -31,7 +47,6 @@ def rotationMatrix(theta):
     x[0][1] = -math.sin(theta)
     x[1][1] = math.cos(theta)
     return x
-
 #theta1 and theta2 eavsdroppter error
 def generateQK(num_bits, theta1=0, theta2=0, securityThresh=1000, simulation=True, withHist=False):
 
@@ -127,8 +142,43 @@ def parityCircuit(theta1=0, theta2=0):
 
     return total_cx
 
+# ParityCircuit for random bit generator and parity bit
+def parityCircuitCheating(cheating=False, cheatingType=0):
 
-def quantumConsensus(nodes=3):
+    if cheating:
+        # Cheating operator
+        c1 = cheatingMatrices()[cheatingType]
+    else:
+        c1 = np.identity(2)
+
+    id_op = Operator(c1)
+
+    truthtable = "10011001"
+    oracle = TruthTableOracle(truthtable)
+    or_cx = oracle.construct_circuit()
+    # print(oracle.output_register)
+    v = oracle.variable_register
+    o = oracle.output_register
+
+    cr1 = ClassicalRegister(3)
+    cr2 = ClassicalRegister(1)
+
+    cx_circ = QuantumCircuit(v, cr2)
+
+    or_cx.add_register(cr1)
+    cx_circ.h(v[1])
+    cx_circ.cx(v[1], v[0])
+
+    cx_circ.unitary(id_op, v[cheatingType+1:cheatingType+2], label='idop')
+
+
+    total_cx = cx_circ + or_cx
+    total_cx.measure(v, cr1)
+    total_cx.measure(o, cr2)
+
+    return total_cx
+
+def quantumConsensus(nodes=3, cheating=False, cheatingType=[0,0,0]):
 
     # Placeholder for the nodes results
     res = dict(zip(string.ascii_uppercase, range(1, nodes+1)))
@@ -141,7 +191,7 @@ def quantumConsensus(nodes=3):
         # Placeholder for all measurements
         pkts = ''
         for i in range(nodes):
-            cx_circ = parityCircuit()
+            cx_circ = parityCircuitCheating(cheating, cheatingType[i])
             job = execute(cx_circ, backend = Aer.get_backend('qasm_simulator'), shots=1, memory=True)
             result = job.result()
             memory = result.get_memory()
@@ -166,19 +216,31 @@ def quantumConsensus(nodes=3):
 
     return res, toSend
 
-def network3nodes():
-    res = quantumConsensus(nodes=3)
+def network3nodes(cheating, cheatingType):
+    res = quantumConsensus(3, cheating, cheatingType)
     toSend = res[1]
 
+    #TODO: Check the mistake here in the validation.
     # Cheat check
     if toSend['A'][1] == toSend['C'][0]:
         print('As validation correct')
+    else:
+        print('As validation failed. Someone cheating')
+
     if toSend['B'][1] == toSend['A'][0]:
         print('Bs validation correct')
+    else:
+        print('Bs validation failed. Someone cheating')
+
     if toSend['C'][1] == toSend['B'][0]:
         print('Cs validation correct')
+    else:
+        print('Cs validation failed. Someone cheating')
+    
+    return res[0]
 
 
 # print(generateQK(8, 1, 0.5, 100, False))
-# print(quantumConsensus())
-print(network3nodes())
+# print(quantumConsensus(3, True, [1,0,0]))
+print(network3nodes(False, [0,0,0]))
+# print(cheatingMatrices())
