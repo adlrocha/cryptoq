@@ -12,6 +12,9 @@ from qiskit.tools.visualization import plot_histogram
 import numpy as np
 import matplotlib.pyplot as plot
 
+from qiskit import IBMQ
+IBMQ.load_accounts()
+
 # Noise matrix
 x = np.identity(16)
 theta = 0.01
@@ -29,14 +32,21 @@ def rotationMatrix(theta):
     return x
 
 #theta1 and theta2 eavsdroppter error
-def generateQK(num_bits, theta1=0, theta2=0, securityThresh=1000, withHist=False):
+def generateQK(num_bits, theta1=0, theta2=0, securityThresh=1000, simulation=True, withHist=False):
 
     # Create the circuit
     cx_circ = parityCircuit(theta1, theta2)
 
-    # Execute the circuit
-    job = execute(cx_circ, backend = Aer.get_backend('qasm_simulator'), shots=256*num_bits, memory=True)
-    result = job.result()
+    if simulation:
+        # Execute the circuit
+        print("Running on simulation...")
+        job = execute(cx_circ, backend = Aer.get_backend('qasm_simulator'), shots=256*num_bits, memory=True)
+        result = job.result()
+    else:
+        # Execute the circuit
+        print("Running on real quantum computer...")
+        job = execute(cx_circ, backend = IBMQ.get_backend('ibmqx4'), shots=256*num_bits, memory=True)
+        result = job.result()
 
     # Print circuit.
     # print(cx_circ)
@@ -50,27 +60,25 @@ def generateQK(num_bits, theta1=0, theta2=0, securityThresh=1000, withHist=False
     
     memory = result.get_memory()
     num_bits = int(num_bits)
-    memory = memory[len(memory)-num_bits: len(memory)]
+    # memory = memory[len(memory)-num_bits: len(memory)]
 
-    # print(memory[len(memory)-1][4])
     res = {'A': '', 'B': '', 'errorCounter':0, 'valid': True}
     counter = 0
     i = len(memory)-1
     while len(res["A"]) != num_bits:
-        print('Memory', memory[i])
-        # Check if error in parity bit
+        print('Memory', memory[i], i)
+        # Check if error in parity bit and discard if there is
         if memory[i][4] == '0':
-            print("Enters here")
             counter+=1
         else:
             res["A"] = res["A"] + memory[i][1]
             res["B"] = res["B"] + memory[i][2]
         
+        # SecurityThreshold from which we discard the key
         if counter >= securityThresh:
             res['valid'] = False
             res["errorCounter"] = counter
             return res
-
         i-=1
         
 
@@ -117,3 +125,12 @@ def parityCircuit(theta1=0, theta2=0):
     total_cx.measure(o, cr2)
 
     return total_cx
+
+
+# def quantumConsensus(nodes=3):
+#     for i in xrange(nodes):
+#         job = execute(cx_circ, backend = Aer.get_backend('qasm_simulator'), shots=256*num_bits, memory=True)
+#         result = job.result()
+#         parityCircuit()
+
+# print(generateQK(127, 0.5, 0.5, 100, True))
