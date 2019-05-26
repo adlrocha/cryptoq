@@ -82,7 +82,7 @@ def generateQK(num_bits, theta1=0, theta2=0, securityThresh=1000, simulation=Tru
     counter = 0
     i = len(memory)-1
     while len(res["A"]) != num_bits:
-        print('Memory', memory[i], i)
+        # print('Memory', memory[i], i)
         # Check if error in parity bit and discard if there is
         if memory[i][4] == '0':
             counter+=1
@@ -242,5 +242,5 @@ def network3nodes(cheating, cheatingType):
 
 # print(generateQK(8, 1, 0.5, 100, False))
 # print(quantumConsensus(3, True, [1,0,0]))
-print(network3nodes(False, [0,0,0]))
+# print(network3nodes(False, [0,0,0]))
 # print(cheatingMatrices())
