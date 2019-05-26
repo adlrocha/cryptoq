@@ -198,7 +198,7 @@ def quantumConsensus(nodes=3, cheating=False, cheatingType=[0,0,0]):
             res[list(res.keys())[i]] = int(memory[0][1])
 
             #Adding measurements
-            pkts += memory[0][1]
+            pkts += memory[0][2]
             pkts += memory[0][1]
             print(res)
     
@@ -211,8 +211,10 @@ def quantumConsensus(nodes=3, cheating=False, cheatingType=[0,0,0]):
     # Corner case
     print(pkts)
     toSend[list(toSend.keys())[0]] = pkts[0] + pkts[len(pkts)-1]
-    for i in range(1, nodes):
-        toSend[list(toSend.keys())[i]] = pkts[i+1] + pkts[i] 
+    #Adding proper nodes
+    for i in range(0, nodes):
+        # Preparing the packets
+        toSend[list(toSend.keys())[i]] = pkts[2*i] + pkts[2*i-1]
 
     return res, toSend
 
@@ -241,7 +243,7 @@ def network3nodes(cheating, cheatingType):
 
 
 # print(generateQK(8, 1, 0.5, 100, False))
-# print(quantumConsensus(3, True, [1,0,0]))
+# print(quantumConsensus())
 # print(network3nodes(False, [0,0,0]))
 # print(cheatingMatrices())
-print(parityCircuit())
+# print(parityCircuit())
