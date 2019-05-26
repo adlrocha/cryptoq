@@ -222,7 +222,6 @@ def network3nodes(cheating, cheatingType):
     res = quantumConsensus(3, cheating, cheatingType)
     toSend = res[1]
 
-    #TODO: Check the mistake here in the validation.
     # Cheat check
     if toSend['A'][1] == toSend['C'][0]:
         print('As validation correct')
