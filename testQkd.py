@@ -4,7 +4,7 @@ from qkd import generateQK
 # Generate Alice and Bob keys
 # The symmetric key for both of them are produced by the quantum circuit
 
-print('[*]Generating 256 bits quantum symmetric keys: without eavsdropper')
+print('[*]Generating 256 bits quantum symmetric keys: without spy')
 qkeyarray = generateQK(256)
 print('Key error counter: ', qkeyarray['errorCounter'], 'isValid?', qkeyarray['valid'])
 alice_key = qkeyarray.get('A')
@@ -42,7 +42,7 @@ print(ctext)
 
 # Bob would decrypt Alice's message
 plain = boxb.decrypt(ctext, nonce)
-print('[*] Plaintex decrypted by B:: ')
+print('[*] Plaintext decrypted by B: ')
 print(plain)
 
 print('\n***********************************************\n')
@@ -87,7 +87,7 @@ print(ctext)
 
 # Bob would decrypt Alice's message
 plain = boxb.decrypt(ctext, nonce)
-print('[*] Plaintex decrypted by B:: ')
+print('[*] Plaintext decrypted by B: ')
 print(plain)
 
 
