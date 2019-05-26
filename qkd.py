@@ -244,3 +244,4 @@ def network3nodes(cheating, cheatingType):
 # print(quantumConsensus(3, True, [1,0,0]))
 # print(network3nodes(False, [0,0,0]))
 # print(cheatingMatrices())
+print(parityCircuit())
